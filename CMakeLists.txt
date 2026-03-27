@@ -88,8 +88,15 @@ enable_testing(true)
 if (SIRIT_USE_SYSTEM_SPIRV_HEADERS)
     find_package(SPIRV-Headers REQUIRED)
 else()
-    add_subdirectory(externals/SPIRV-Headers EXCLUDE_FROM_ALL)
-    add_library(SPIRV-Headers::SPIRV-Headers ALIAS SPIRV-Headers)
+    # 关键修改：只有在目标不存在的情况下才进行添加
+    if (NOT TARGET SPIRV-Headers::SPIRV-Headers)
+        add_subdirectory(externals/SPIRV-Headers EXCLUDE_FROM_ALL)
+
+        # 再次确认，防止子目录内部已经定义了该别名
+        if (NOT TARGET SPIRV-Headers::SPIRV-Headers)
+            add_library(SPIRV-Headers::SPIRV-Headers ALIAS SPIRV-Headers)
+        endif()
+    endif()
 endif()
 
 # Sirit project files
